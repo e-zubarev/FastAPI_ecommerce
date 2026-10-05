@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status
+from datetime import timedelta
+
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import exceptions as exc
@@ -12,12 +14,48 @@ from app.custom_types import PositiveIntPath
 router = APIRouter(prefix='/products', tags=['products'])
 
 
-@router.get('/', response_model=list[schemas.Product])
-async def get_products(db: AsyncSession = Depends(get_async_db)):
+@router.get('/', response_model=schemas.ProductList)
+async def get_products(
+        page: int = Query(default=1, ge=1),
+        page_size: int = Query(default=20, ge=1, le=100),
+        filters: schemas.ProductListFilter = Depends(),
+        db: AsyncSession = Depends(get_async_db)
+):
     """
-    Получить список всех активных товаров
+    Получить список всех активных товаров с поддержкой пагинации
     """
-    return await crud.products.get_products(db=db)
+    if filters.min_price and filters.max_price and filters.min_price > filters.max_price:
+        raise exc.INVALID_PRICE_RANGE
+
+    query_filters: list = [models.Product.is_active]
+
+    if filters.search:
+        query_filters.append(models.Product.name.ilike(f'%{filters.search}%'))
+    if filters.category_id:
+        query_filters.append(models.Product.category_id == filters.category_id)
+    if filters.min_price:
+        query_filters.append(models.Product.price >= filters.min_price)
+    if filters.max_price:
+        query_filters.append(models.Product.price <= filters.max_price)
+    if filters.in_stock is not None:
+        query_filters.append(models.Product.stock > 0 if filters.in_stock else models.Product.stock == 0)
+    if filters.seller_id:
+        query_filters.append(models.Product.seller_id == filters.seller_id)
+    if filters.created_at:
+        query_filters.append(models.Product.created_at >= filters.created_at)
+        query_filters.append(models.Product.created_at < filters.created_at + timedelta(days=1))
+    if filters.updated_at:
+        query_filters.append(models.Product.updated_at >= filters.updated_at)
+        query_filters.append(models.Product.updated_at < filters.updated_at + timedelta(days=1))
+
+    total, items = await crud.products.get_products(db=db, page=page, page_size=page_size, query_filters=query_filters)
+
+    return {
+        'items': items,
+        'total': total,
+        'page': page,
+        'page_size': page_size
+    }
 
 
 @router.post('/', response_model=schemas.Product, status_code=status.HTTP_201_CREATED)

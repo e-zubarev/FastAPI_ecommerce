@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated
 
@@ -67,9 +68,113 @@ class Product(ProductBase):
         int,
         Field(description='Уникальный идентификатор товара')
     ]
+    created_at: Annotated[
+        datetime,
+        Field(description='Дата и время создания')
+    ]
+    updated_at: Annotated[
+        datetime | None,
+        Field(
+            default=None,
+            description='Дата и время последнего обновления'
+        )
+    ]
     is_active: Annotated[
         bool,
         Field(description='Признак активности')
     ]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ProductList(BaseModel):
+    """ Список товаров с поддержкой пагинации """
+    items: Annotated[
+        list[Product],
+        Field(description='Товары текущей страницы')
+    ]
+    total: Annotated[
+        int,
+        Field(
+            ge=0,
+            description='Общее количество товаров'
+        )
+    ]
+    page: Annotated[
+        int,
+        Field(
+            ge=1,
+            description='Номер текущей страницы'
+        )
+    ]
+    page_size: Annotated[
+        int,
+        Field(
+            ge=1,
+            description='Количество элементов на странице'
+        )
+    ]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProductListFilter(BaseModel):
+    """ Схема фильтра для списочного метода товара """
+    search: Annotated[
+        str | None,
+        Field(
+            default=None,
+            description='Строка поиска'
+        )
+    ]
+    category_id: Annotated[
+        int | None,
+        Field(
+            default=None,
+            description='Идентификатор категории'
+        )
+    ]
+    min_price: Annotated[
+        float | None,
+        Field(
+            default=None,
+            ge=0,
+            description='Минимальная цена товара'
+        )
+    ]
+    max_price: Annotated[
+        float | None,
+        Field(
+            default=None,
+            ge=0,
+            description='Максимальная цена товара'
+        )
+    ]
+    in_stock: Annotated[
+        bool | None,
+        Field(
+            default=None,
+            description='True - только товары в наличии, False - только без остатка'
+        )
+    ]
+    seller_id: Annotated[
+        int | None,
+        Field(
+            default=None,
+            description='Идентификатор продавца'
+        )
+    ]
+    created_at: Annotated[
+        date | None,
+        Field(
+            default=None,
+            description='Дата создания'
+        )
+    ]
+    updated_at: Annotated[
+        date | None,
+        Field(
+            default=None,
+            description='Дата последнего обновления'
+        )
+    ]

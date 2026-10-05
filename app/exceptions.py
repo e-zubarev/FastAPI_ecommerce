@@ -93,6 +93,11 @@ PRODUCT_NOT_FOUND = HTTPException(
     detail='Product not found or inactive'
 )
 
+INVALID_PRICE_RANGE = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Минимальная цена не может быть больше максимальной",
+)
+
 
 # Исключения для отзывов
 

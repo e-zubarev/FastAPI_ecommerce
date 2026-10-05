@@ -1,24 +1,39 @@
 from typing import Sequence
 
-from sqlalchemy import exists, insert, select, update
+from sqlalchemy import exists, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models, schemas
 
 
-async def get_products(db: AsyncSession) -> Sequence[models.Product]:
+async def get_products(
+        db: AsyncSession,
+        *,
+        page: int,
+        page_size: int,
+        query_filters: list
+) -> tuple[int, Sequence[models.Product]]:
     """
-    Получить список активных товаров
+    Получить список активных товаров и общее число записей (для списка с пагинацией)
     """
-    stmt = (
+    total_stmt = (
+        select(func.count(models.Product.id))
+        .where(*query_filters)
+    )
+    total = await db.scalar(total_stmt)
+
+    offset = (page - 1) * page_size
+    products_stmt = (
         select(models.Product)
         .join(models.Category)
-        .where(models.Product.is_active)
+        .where(*query_filters)
+        .order_by(models.Product.id)
+        .offset(offset)
+        .limit(page_size)
     )
+    products = await db.scalars(products_stmt)
 
-    products = await db.scalars(stmt)
-
-    return products.all()
+    return total, products.all()
 
 
 async def get_products_by_category(

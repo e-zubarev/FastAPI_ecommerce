@@ -2,7 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, constr
 
 
 class ProductBase(BaseModel):
@@ -121,9 +121,10 @@ class ProductList(BaseModel):
 class ProductListFilter(BaseModel):
     """ Схема фильтра для списочного метода товара """
     search: Annotated[
-        str | None,
+        constr(strip_whitespace=True) | None,
         Field(
             default=None,
+            min_length=1,
             description='Строка поиска'
         )
     ]

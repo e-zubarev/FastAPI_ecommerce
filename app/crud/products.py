@@ -1,6 +1,7 @@
+from datetime import timedelta
 from typing import Sequence
 
-from sqlalchemy import exists, func, insert, select, update
+from sqlalchemy import desc, exists, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models, schemas
@@ -11,29 +12,62 @@ async def get_products(
         *,
         page: int,
         page_size: int,
-        query_filters: list
+        filters: schemas.ProductListFilter
 ) -> tuple[int, Sequence[models.Product]]:
     """
     Получить список активных товаров и общее число записей (для списка с пагинацией)
     """
-    total_stmt = (
-        select(func.count(models.Product.id))
-        .where(*query_filters)
-    )
+    where_clause: list = [models.Product.is_active == True]
+
+    rank_column = None
+
+    if filters.search and filters.search != '':
+        ts_query = func.websearch_to_tsquery('russian', filters.search)
+        where_clause.append(models.Product.tsv.op('@@')(ts_query))
+        rank_column = func.ts_rank_cd(models.Product.tsv, ts_query).label('rank')
+
+    if filters.category_id:
+        where_clause.append(models.Product.category_id == filters.category_id)
+
+    if filters.min_price:
+        where_clause.append(models.Product.price >= filters.min_price)
+
+    if filters.max_price:
+        where_clause.append(models.Product.price <= filters.max_price)
+
+    if filters.in_stock is not None:
+        where_clause.append(models.Product.stock > 0 if filters.in_stock else models.Product.stock == 0)
+
+    if filters.seller_id:
+        where_clause.append(models.Product.seller_id == filters.seller_id)
+
+    if filters.created_at:
+        where_clause.append(filters.created_at <= models.Product.created_at < filters.created_at + timedelta(days=1))
+
+    if filters.updated_at:
+        where_clause.append(filters.updated_at <= models.Product.updated_at < filters.updated_at + timedelta(days=1))
+
+    total_stmt = select(func.count(models.Product.id)).where(*where_clause)
     total = await db.scalar(total_stmt)
 
-    offset = (page - 1) * page_size
+    if rank_column is not None:
+        select_clause = [models.Product, rank_column]
+        order_clause = [desc('rank'), models.Product.id]
+    else:
+        select_clause = [models.Product]
+        order_clause = [models.Product.id]
+
     products_stmt = (
-        select(models.Product)
-        .join(models.Category)
-        .where(*query_filters)
-        .order_by(models.Product.id)
-        .offset(offset)
+        select(*select_clause)
+        .where(*where_clause)
+        .order_by(*order_clause)
+        .offset((page - 1) * page_size)
         .limit(page_size)
     )
-    products = await db.scalars(products_stmt)
+    products = await db.execute(products_stmt)
+    products = products.scalars().all()
 
-    return total, products.all()
+    return total, products
 
 
 async def get_products_by_category(

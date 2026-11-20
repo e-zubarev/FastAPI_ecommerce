@@ -25,6 +25,7 @@ app.include_router(routers.categories)
 app.include_router(routers.products)
 app.include_router(routers.users)
 app.include_router(routers.reviews)
+app.include_router(routers.carts)
 
 
 @app.get('/')

@@ -15,6 +15,11 @@ from .products import (
     update_product,
     update_product_rating,
 )
+from .users import (
+    check_email_exists,
+    create_user,
+    get_user_by_email,
+)
 from .reviews import (
     create_review,
     get_product_rating,
@@ -23,10 +28,12 @@ from .reviews import (
     get_reviews_by_product,
     delete_review,
 )
-from .users import (
-    check_email_exists,
-    create_user,
-    get_user_by_email,
+from .carts import (
+    delete_cart,
+    delete_cart_item,
+    get_cart_items,
+    upsert_cart_item,
+    update_cart_item,
 )
 
 __all__ = [
@@ -37,9 +44,11 @@ __all__ = [
     'create_product',
     'create_review',
     'create_user',
+    'delete_cart_item',
     'delete_category',
     'delete_product',
     'delete_review',
+    'get_cart_items',
     'get_categories',
     'get_product',
     'get_products',

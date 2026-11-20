@@ -4,7 +4,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class CategoryBase(BaseModel):
-    """ Базовая схема категорий с общими валидаторами для схем категорий """
+    """
+    Базовая схема категорий с общими валидаторами
+    """
     name: Annotated[
         str,
         Field(
@@ -23,17 +25,27 @@ class CategoryBase(BaseModel):
 
 
 class CategoryCreate(CategoryBase):
-    """ Схема для создания категории (POST) """
+    """
+    Схема для создания категории (POST /categories)
+    """
     pass
 
 
 class CategoryUpdate(CategoryBase):
-    """ Схема для обновления категории (PUT) """
+    """
+    Схема для обновления категории (PUT /categories/{category_id})
+    """
     pass
 
 
 class Category(CategoryBase):
-    """ Схема категории для ответа в GET-запросе"""
+    """
+    Полная схема категории, возвращаемая сервером
+
+     Используется в эндпоинтах:
+        - GET | POST /categories
+        - PUT | DELETE /categories/{category_id}
+    """
     id: Annotated[
         int,
         Field(description='Уникальный идентификатор категории')

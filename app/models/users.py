@@ -12,11 +12,9 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
-    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     role: Mapped[str] = mapped_column(String, default='buyer')
 
-    products: Mapped[list['Product']] = relationship(
-        'Product',
-        back_populates='seller'
-    )
+    products: Mapped[list['Product']] = relationship('Product', back_populates='seller')
+    cart_items: Mapped[list['CartItem']] = relationship('CartItem', back_populates='user', cascade='all, delete-orphan')

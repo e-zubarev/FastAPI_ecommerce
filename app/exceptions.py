@@ -117,6 +117,14 @@ REVIEW_NOT_FOUND = HTTPException(
 )
 
 
+# Исключения для корзины
+
+CART_ITEM_NOT_FOUND = HTTPException(
+    status_code=status.HTTP_404_NOT_FOUND,
+    detail='Cart item not found'
+)
+
+
 # Исключения базы данных
 
 DB_INTEGRITY_VIOLATED = HTTPException(

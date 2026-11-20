@@ -1,13 +1,10 @@
-from datetime import timedelta
-
 from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import crud
 from app import exceptions as exc
 from app import models, schemas
 from app.auth import get_current_seller
-from app import crud
 from app.db_depends import get_async_db
 from app.custom_types import PositiveIntPath
 
@@ -57,7 +54,7 @@ async def create_product(
     return created_product
 
 
-@router.get('/catedory/{category_id}', response_model=list[schemas.Product])
+@router.get('/category/{category_id}', response_model=list[schemas.Product])
 async def get_products_by_category(
         category_id: PositiveIntPath,
         db: AsyncSession = Depends(get_async_db)

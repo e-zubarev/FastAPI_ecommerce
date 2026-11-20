@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import desc, exists, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -135,7 +135,7 @@ async def create_product(
         *,
         product_in: schemas.ProductCreate,
         seller_id: int
-) -> schemas.Product:
+) -> models.Product:
     """
     Создать новый товар
     """

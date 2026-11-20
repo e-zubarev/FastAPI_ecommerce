@@ -6,7 +6,9 @@ from pydantic import BaseModel, ConfigDict, Field, constr
 
 
 class ProductBase(BaseModel):
-    """ Базовая схема продукта с общими валидаторами для схем продуктов """
+    """
+    Базовая схема товара с общими валидаторами
+    """
     name: Annotated[
         str,
         Field(
@@ -53,17 +55,28 @@ class ProductBase(BaseModel):
 
 
 class ProductCreate(ProductBase):
-    """ Схема для создания продукта (POST) """
+    """
+    Схема для создания товара (POST /products)
+    """
     pass
 
 
 class ProductUpdate(ProductBase):
-    """ Схема для обновления продукта (PUT) """
+    """
+    Схема для обновления товара (PUT /products/{product_id})
+    """
     pass
 
 
 class Product(ProductBase):
-    """ Схема продукта для ответа в GET-запросе """
+    """
+    Полная схема товара, возвращаемая сервером
+
+    Используется для валидации на выходе в эндпоинтах:
+        - GET | POST /products
+        - GET | PUT | DELETE /products/{product_id}
+        - GET /category/{category_id}
+    """
     id: Annotated[
         int,
         Field(description='Уникальный идентификатор товара')
@@ -88,7 +101,9 @@ class Product(ProductBase):
 
 
 class ProductList(BaseModel):
-    """ Список товаров с поддержкой пагинации """
+    """
+    Схема списка товаров с поддержкой пагинации (GET /products)
+    """
     items: Annotated[
         list[Product],
         Field(description='Товары текущей страницы')
@@ -119,7 +134,9 @@ class ProductList(BaseModel):
 
 
 class ProductListFilter(BaseModel):
-    """ Схема фильтра для списочного метода товара """
+    """
+    Схема входящего фильтра списочного метода товаров (GET /products)
+    """
     search: Annotated[
         constr(strip_whitespace=True) | None,
         Field(

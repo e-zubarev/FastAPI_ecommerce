@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import exceptions as exc
-from app import models, schemas
+from app import schemas
 from app.auth import allow_admin
 from app import crud
 from app.db_depends import get_async_db
@@ -77,7 +77,11 @@ async def update_category(
     return updated_category
 
 
-@router.delete('/{category_id}', dependencies=[Depends(allow_admin)])
+@router.delete(
+    '/{category_id}',
+    response_model=schemas.Category,
+    dependencies=[Depends(allow_admin)]
+)
 async def delete_category(
         category_id: PositiveIntPath,
         db: AsyncSession = Depends(get_async_db)

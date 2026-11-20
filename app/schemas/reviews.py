@@ -5,7 +5,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReviewBase(BaseModel):
-    """ Базовая схема отзыва о товаре """
+    """
+    Базовая схема отзыва о товаре с общими валидаторами
+    """
     product_id: Annotated[
         int,
         Field(description='Идентификатор товара')
@@ -28,12 +30,21 @@ class ReviewBase(BaseModel):
 
 
 class ReviewCreate(ReviewBase):
-    """ Схема для валидации входящего отзыва о товаре в POST запросе """
+    """
+    Схема создания отзыва о товаре (POST /reviews)
+    """
     pass
 
 
 class Review(ReviewBase):
-    """ Схема отзыва о товаре, используемая в GET запросе """
+    """
+    Полная схема отзыва о товаре, возвращаемая сервером
+
+     Используется в эндпоинтах:
+        - GET | POST /reviews
+        - GET /products/{product_id}/reviews
+        - DELETE /reviews/{review_id}
+    """
     id: Annotated[
         int,
         Field(description='Уникальный идентификатор идентификатор отзыва о товаре')
